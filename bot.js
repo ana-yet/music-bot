@@ -1,9 +1,9 @@
 require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 const yts = require("yt-search");
-const youtubedl = require("yt-dlp-exec");
 const fs = require("fs");
 const path = require("path");
+const { exec } = require("child_process");
 const express = require("express");
 
 const token = process.env.BOT_TOKEN;
@@ -53,25 +53,28 @@ bot.on("callback_query", async (callback) => {
   const videoId = callback.data.split("yt::")[1];
   const fileName = videoId + ".m4a";
   const filePath = path.join(cacheDir, fileName);
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+  bot.sendMessage(chatId, "Downloading audio... please wait.");
 
   try {
-    bot.sendMessage(chatId, "Downloading audio... please wait.");
-
     if (fs.existsSync(filePath)) {
       return bot.sendAudio(chatId, filePath);
     }
 
-    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const command = `yt-dlp "${videoUrl}" --output "${filePath}" --format bestaudio[ext=m4a]/bestaudio`;
+    exec(command, (err, stdout, stderr) => {
+      if (err) {
+        console.error("Download error:", err);
+        bot.sendMessage(chatId, "Error downloading audio.");
+        return;
+      }
 
-    await youtubedl(videoUrl, {
-      output: filePath,
-      format: "bestaudio[ext=m4a]/bestaudio",
-      ffmpegLocation: "/usr/bin/ffmpeg", // For Linux hosts with ffmpeg installed
+      console.log(stdout);
+      bot.sendAudio(chatId, filePath);
     });
-
-    bot.sendAudio(chatId, filePath);
   } catch (err) {
     console.error(err);
-    bot.sendMessage(chatId, "Error downloading audio.");
+    bot.sendMessage(chatId, "Unexpected error occurred.");
   }
 });
