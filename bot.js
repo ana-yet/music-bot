@@ -54,6 +54,7 @@ bot.on("callback_query", async (callback) => {
   const fileName = videoId + ".m4a";
   const filePath = path.join(cacheDir, fileName);
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const cookiesPath = path.join(__dirname, "cookies", "cookies.txt"); // <-- add this
 
   bot.sendMessage(chatId, "Downloading audio... please wait.");
 
@@ -62,7 +63,7 @@ bot.on("callback_query", async (callback) => {
       return bot.sendAudio(chatId, filePath);
     }
 
-    const command = `yt-dlp "${videoUrl}" --output "${filePath}" --format bestaudio[ext=m4a]/bestaudio`;
+    const command = `yt-dlp "${videoUrl}" --output "${filePath}" --format bestaudio[ext=m4a]/bestaudio --cookies "${cookiesPath}"`;
     exec(command, (err, stdout, stderr) => {
       if (err) {
         console.error("Download error:", err);

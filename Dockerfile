@@ -10,17 +10,20 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o 
 # Set working directory
 WORKDIR /app
 
-# Copy and install dependencies
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy all other source files
+# Copy source files
 COPY . .
+
+# Copy cookies (assuming you have cookies/cookies.txt)
+COPY cookies/ /app/cookies/
 
 # Set environment variables
 ENV PORT=3000
 
-# Expose the port Railway will use
+# Expose the port
 EXPOSE 3000
 
 # Run your bot
