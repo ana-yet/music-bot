@@ -17,6 +17,20 @@ const bot = new TelegramBot(token, { polling: true });
 const cacheDir = path.join(__dirname, "cache");
 
 if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+setInterval(() => {
+  fs.readdir(cacheDir, (err, files) => {
+    if (err) return console.error("Error reading cache directory:", err);
+
+    files.forEach((file) => {
+      const filePath = path.join(cacheDir, file);
+      fs.unlink(filePath, (err) => {
+        if (err) console.error("Error deleting file:", filePath, err);
+      });
+    });
+
+    console.log("Daily cache cleanup complete.");
+  });
+}, 24 * 60 * 60 * 500);
 
 bot.onText(/\/play (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
